@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Hospitalisations pour gestes auto-infligés — France</title>
+<title>Gestes auto-infligés — Évolution par tranche d'âge (France 2019–2024)</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <link href="https://unpkg.com/@gouvfr/dsfr/dist/dsfr.min.css" rel="stylesheet">
 <style>
@@ -16,9 +16,9 @@
     --text: #161616;
     --muted: #666666;
     --accent: #114b8a;
-    --accent-light: #dce8f5;
-    --gray-bar: #dddddd;
-    --gray-bar-border: #cccccc;
+    --c1: #e85d04;
+    --c2: #114b8a;
+    --c3: #1a7abf;
   }
 
   body {
@@ -71,25 +71,82 @@
     line-height: 1.5;
   }
 
-  /* Année display */
-  .year-display {
-    display: flex;
-    align-items: baseline;
-    gap: 16px;
-    margin-bottom: 20px;
+  /* KPI strip */
+  .kpi-strip {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 28px;
   }
 
-  .year-number {
+  .kpi-card {
+    padding: 16px 18px 14px;
+    border-radius: 4px;
+    border: 1px solid var(--border);
+    border-left-width: 4px;
+  }
+
+  .kpi-card.c1 { border-left-color: var(--c1); background: #fff8f5; }
+  .kpi-card.c2 { border-left-color: var(--c2); background: #f3f6fb; }
+  .kpi-card.c3 { border-left-color: var(--c3); background: #f0f6fc; }
+
+  .kpi-age {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+
+  .kpi-pct {
     font-size: 36px;
     font-weight: 700;
     line-height: 1;
-    color: var(--accent);
+    margin-bottom: 5px;
   }
 
-  .source-block {
-    font-size: 11px;
+  .c1 .kpi-pct { color: var(--c1); }
+  .c2 .kpi-pct { color: var(--c2); }
+  .c3 .kpi-pct { color: var(--c3); }
+
+  .kpi-detail {
+    font-size: 11.5px;
     color: var(--muted);
+    line-height: 1.5;
+  }
+
+  .kpi-period {
+    font-size: 10.5px;
+    color: #aaa;
+    margin-top: 2px;
+    font-style: italic;
+  }
+
+  /* Definition note */
+  .context-note {
     margin-bottom: 16px;
+    padding: 9px 13px;
+    background: #f8f8f8;
+    border-radius: 4px;
+    border-left: 3px solid #cccccc;
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.5;
+    font-style: italic;
+  }
+
+  /* Chart */
+  .chart-wrap {
+    position: relative;
+    height: 380px;
+    margin-bottom: 16px;
+  }
+
+  /* Source */
+  .source-block {
+    font-size: 13px;
+    color: var(--muted);
     padding: 8px 12px;
     background: var(--bg);
     border-radius: 4px;
@@ -97,300 +154,155 @@
     line-height: 1.5;
   }
 
-  .source-block strong {
-    color: #444;
-    font-weight: 700;
-  }
-
-  .year-stats {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-  }
-
-  .year-total {
-    font-size: 13px;
-    color: var(--muted);
-  }
-
-  .year-total strong {
-    color: var(--text);
-    font-weight: 700;
-  }
-
-  /* Chart container */
-  .chart-wrap {
-    position: relative;
-    height: 340px;
-    margin-bottom: 20px;
-  }
-
-  /* Player controls */
-  .player {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin-bottom: 24px;
-  }
-
-  .btn-play {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    background: var(--accent);
-    border: none;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: background 0.15s ease;
-    flex-shrink: 0;
-  }
-
-  .btn-play:hover { background: #1a6abf; }
-  .btn-play svg { width: 15px; height: 15px; fill: white; }
-
-  .years-track {
-    display: flex;
-    gap: 6px;
-    flex: 1;
-  }
-
-  .year-pill {
-    flex: 1;
-    height: 36px;
-    border-radius: 4px;
-    border: 1px solid var(--border);
-    background: transparent;
-    color: var(--muted);
-    font-family: 'Marianne', arial, sans-serif;
-    font-size: 13px;
-    font-weight: 700;
-    cursor: pointer;
-    transition: all 0.15s ease;
-  }
-
-  .year-pill:hover { border-color: var(--accent); color: var(--accent); }
-
-  .year-pill.active {
-    background: var(--accent);
-    border-color: var(--accent);
-    color: white;
-  }
-
-  /* Legend */
-  .legend {
-    display: flex;
-    gap: 20px;
-    flex-wrap: wrap;
-    margin-bottom: 4px;
-  }
-
-  .legend-item {
-    display: flex;
-    align-items: center;
-    gap: 7px;
-    font-size: 12px;
-    color: var(--muted);
-  }
-
-  .legend-dot {
-    width: 10px;
-    height: 10px;
-    border-radius: 2px;
-    flex-shrink: 0;
-  }
+  .source-block strong { color: #444; font-weight: 700; }
 
   /* Footnote */
   .footnote {
     margin-top: 20px;
     padding-top: 14px;
     border-top: 1px solid var(--border);
-    font-size: 11px;
+    font-size: 13px;
     color: var(--muted);
-    line-height: 1.5;
+    line-height: 1.6;
+  }
+
+  @media (max-width: 600px) {
+    .card { padding: 24px 20px; }
+    .kpi-strip { grid-template-columns: 1fr; }
+    .kpi-pct { font-size: 28px; }
+    .chart-wrap { height: 280px; }
   }
 </style>
 </head>
 <body>
 
 <div class="card">
+
   <div class="header">
     <div class="eyebrow">Réutilisation des données de Santé Publique France</div>
-    <h1>Hospitalisations pour gestes auto-infligés : évolution 2019–2024</h1>
-    <p class="subtitle">Taux brut pour 100 000 habitants, par tranche d'âge · Toutes causes confondues (tentatives de suicide, automutilations)</p>
+    <h1>Gestes auto-infligés : une hausse alarmante chez les jeunes (2019–2024)</h1>
+    <p class="subtitle">Évolution du taux brut d'hospitalisation pour 100 000 habitants</p>
   </div>
 
-  <div class="source-block">
-    <strong>Source :</strong> <a href="https://odisse.santepubliquefrance.fr/explore/dataset/gestes-auto-infliges-hospitalisations-france/information/" target="_blank" style="color:var(--accent);text-decoration:underline;">Gestes auto-infligés : Hospitalisations (France)</a> — Open Data des indicateurs en santé de Santé Publique France
-  </div>
-
-  <div class="year-display">
-    <div class="year-number" id="yearBig">2019</div>
-    <div class="year-stats">
-      <div class="year-total">Total national : <strong id="totalSejours">—</strong> séjours hospitalisés</div>
+  <div class="kpi-strip">
+    <div class="kpi-card c1">
+      <div class="kpi-age">11–14 ans</div>
+      <div class="kpi-pct">+90 %</div>
+      <div class="kpi-detail">147 → 279 pour 100 000 hab.</div>
+      <div class="kpi-period">2024 vs. 2019</div>
     </div>
+    <div class="kpi-card c2">
+      <div class="kpi-age">15–17 ans</div>
+      <div class="kpi-pct">+66 %</div>
+      <div class="kpi-detail">305 → 507 pour 100 000 hab.</div>
+      <div class="kpi-period">2024 vs. 2019</div>
+    </div>
+    <div class="kpi-card c3">
+      <div class="kpi-age">18–24 ans</div>
+      <div class="kpi-pct">+41 %</div>
+      <div class="kpi-detail">207 → 292 pour 100 000 hab.</div>
+      <div class="kpi-period">2024 vs. 2019</div>
+    </div>
+  </div>
+
+  <div class="context-note">
+    Les gestes auto-infligés comprennent les tentatives de suicide et les automutilations.
   </div>
 
   <div class="chart-wrap">
     <canvas id="chart"></canvas>
   </div>
 
-  <div class="player">
-    <button class="btn-play" id="btnPlay" title="Lecture automatique">
-      <svg viewBox="0 0 16 16"><path d="M4 2l10 6-10 6z"/></svg>
-    </button>
-    <div class="years-track" id="yearsTrack"></div>
-  </div>
 
-  <div class="legend" id="legend"></div>
+  <div class="source-block">
+    <strong>Source :</strong> <a href="https://odisse.santepubliquefrance.fr/explore/dataset/gestes-auto-infliges-hospitalisations-france/information/" target="_blank" style="color:var(--accent);text-decoration:underline;">Gestes auto-infligés : Hospitalisations (France)</a> — Open Data des indicateurs en santé de Santé Publique France (ODISSE)
+  </div>
 
   <div class="footnote">
     Les indicateurs de la surveillance des hospitalisations pour geste auto-infligé, comprenant les tentatives de suicide et les automutilations, proviennent du « Programme de médicalisation des systèmes d'information en médecine, chirurgie, obstétrique et odontologie (PMSI-MCO) » mis à disposition dans le Système national des données de santé (SNDS). Le PMSI-MCO recueille les données médico-administratives exhaustives relatives aux séjours dans tous les établissements publics et privés de santé de courte durée de France (Hexagone + DROM). Les données sont disponibles par classe d'âge et sexe.
-    <br><br>
-    <a href="https://odisse.santepubliquefrance.fr/explore/dataset/gestes-auto-infliges-hospitalisations-france/information/" target="_blank" style="color:var(--accent);">Plus d'infos sur les données utilisées pour cette datavisualisation</a>
   </div>
+
 </div>
 
 <script>
 const ANNEES = ['2019','2020','2021','2022','2023','2024'];
-const TRANCHES = ['00-10 ans','11-14 ans','15-17 ans','18-24 ans','25-44 ans','45-64 ans','65-84 ans','85 ans et plus'];
-const CIBLES = ['11-14 ans','15-17 ans','18-24 ans'];
 
-const TOTAUX = {
-  '2019': 87287, '2020': 79099, '2021': 86508,
-  '2022': 88193, '2023': 91163, '2024': 97305
-};
+const SERIES = [
+  { label: '25-44 ans',      data: [164.0, 146.2, 143.3, 139.8, 149.6, 155.1], paleColor: 'rgba(110,135,165,0.72)' },
+  { label: '45-64 ans',      data: [154.6, 139.2, 132.9, 129.9, 129.3, 128.6], paleColor: 'rgba(110,155,125,0.72)' },
+  { label: '65-84 ans',      data: [68.0,  65.0,  64.9,  65.4,  63.7,  64.8],  paleColor: 'rgba(165,140,100,0.72)' },
+  { label: '85 ans et plus', data: [76.9,  78.8,  75.2,  79.8,  79.0,  76.5],  paleColor: 'rgba(155,115,150,0.72)' },
+  { label: '18-24 ans',      data: [206.6, 191.6, 228.2, 252.0, 272.6, 291.7], color: '#1a7abf' },
+  { label: '11-14 ans',      data: [147.0, 126.6, 222.3, 216.9, 230.6, 279.4], color: '#e85d04' },
+  { label: '15-17 ans',      data: [305.3, 267.1, 404.6, 436.0, 423.4, 506.5], color: '#114b8a' },
+];
 
-const DATA = {
-  "2019": {
-    "00-10 ans":   { sejours: 390,   taux: 4.5,   pct: 0.4 },
-    "11-14 ans":   { sejours: 4943,  taux: 147.0, pct: 5.7 },
-    "15-17 ans":   { sejours: 7691,  taux: 305.3, pct: 8.8 },
-    "18-24 ans":   { sejours: 11220, taux: 206.6, pct: 12.9 },
-    "25-44 ans":   { sejours: 26666, taux: 164.0, pct: 30.5 },
-    "45-64 ans":   { sejours: 27028, taux: 154.6, pct: 31.0 },
-    "65-84 ans":   { sejours: 7653,  taux: 68.0,  pct: 8.8 },
-    "85 ans et plus": { sejours: 1699, taux: 76.9, pct: 1.9 }
-  },
-  "2020": {
-    "00-10 ans":   { sejours: 367,   taux: 4.2,   pct: 0.5 },
-    "11-14 ans":   { sejours: 4283,  taux: 126.6, pct: 5.4 },
-    "15-17 ans":   { sejours: 6678,  taux: 267.1, pct: 8.4 },
-    "18-24 ans":   { sejours: 10503, taux: 191.6, pct: 13.3 },
-    "25-44 ans":   { sejours: 23691, taux: 146.2, pct: 30.0 },
-    "45-64 ans":   { sejours: 24336, taux: 139.2, pct: 30.8 },
-    "65-84 ans":   { sejours: 7464,  taux: 65.0,  pct: 9.4 },
-    "85 ans et plus": { sejours: 1776, taux: 78.8, pct: 2.2 }
-  },
-  "2021": {
-    "00-10 ans":   { sejours: 351,   taux: 4.1,   pct: 0.4 },
-    "11-14 ans":   { sejours: 7585,  taux: 222.3, pct: 8.8 },
-    "15-17 ans":   { sejours: 10164, taux: 404.6, pct: 11.7 },
-    "18-24 ans":   { sejours: 12580, taux: 228.2, pct: 14.5 },
-    "25-44 ans":   { sejours: 23323, taux: 143.3, pct: 27.0 },
-    "45-64 ans":   { sejours: 23212, taux: 132.9, pct: 26.8 },
-    "65-84 ans":   { sejours: 7595,  taux: 64.9,  pct: 8.8 },
-    "85 ans et plus": { sejours: 1698, taux: 75.2, pct: 2.0 }
-  },
-  "2022": {
-    "00-10 ans":   { sejours: 373,   taux: 4.4,   pct: 0.4 },
-    "11-14 ans":   { sejours: 7440,  taux: 216.9, pct: 8.4 },
-    "15-17 ans":   { sejours: 11126, taux: 436.0, pct: 12.6 },
-    "18-24 ans":   { sejours: 13991, taux: 252.0, pct: 15.9 },
-    "25-44 ans":   { sejours: 22972, taux: 139.8, pct: 26.0 },
-    "45-64 ans":   { sejours: 22673, taux: 129.9, pct: 25.7 },
-    "65-84 ans":   { sejours: 7804,  taux: 65.4,  pct: 8.8 },
-    "85 ans et plus": { sejours: 1813, taux: 79.8, pct: 2.1 }
-  },
-  "2023": {
-    "00-10 ans":   { sejours: 365,   taux: 4.4,   pct: 0.4 },
-    "11-14 ans":   { sejours: 7926,  taux: 230.6, pct: 8.7 },
-    "15-17 ans":   { sejours: 10917, taux: 423.4, pct: 12.0 },
-    "18-24 ans":   { sejours: 15228, taux: 272.6, pct: 16.7 },
-    "25-44 ans":   { sejours: 24672, taux: 149.6, pct: 27.1 },
-    "45-64 ans":   { sejours: 22514, taux: 129.3, pct: 24.7 },
-    "65-84 ans":   { sejours: 7746,  taux: 63.7,  pct: 8.5 },
-    "85 ans et plus": { sejours: 1793, taux: 79.0, pct: 2.0 }
-  },
-  "2024": {
-    "00-10 ans":   { sejours: 336,   taux: 4.1,   pct: 0.3 },
-    "11-14 ans":   { sejours: 9596,  taux: 279.4, pct: 9.9 },
-    "15-17 ans":   { sejours: 13196, taux: 506.5, pct: 13.6 },
-    "18-24 ans":   { sejours: 16346, taux: 291.7, pct: 16.8 },
-    "25-44 ans":   { sejours: 25702, taux: 155.1, pct: 26.4 },
-    "45-64 ans":   { sejours: 22354, taux: 128.6, pct: 23.0 },
-    "65-84 ans":   { sejours: 8025,  taux: 64.8,  pct: 8.2 },
-    "85 ans et plus": { sejours: 1749, taux: 76.5, pct: 1.8 }
-  }
-};
+const datasets = SERIES.map(s => {
+  const lineColor = s.color ?? s.paleColor;
+  return {
+    label: s.label,
+    data: s.data,
+    borderColor: lineColor,
+    backgroundColor: 'transparent',
+    borderWidth: s.color ? 2.5 : 2,
+    pointRadius: s.color ? 3.5 : 2,
+    pointHoverRadius: s.color ? 6 : 4,
+    pointBackgroundColor: lineColor,
+    tension: 0.35,
+  };
+});
 
-// Couleurs
-const COLOR_CIBLE_BG = '#114b8a';
-const COLOR_CIBLE_BORDER = '#114b8a';
-const COLOR_GRAY = 'rgba(200,200,210,0.7)';
-const COLOR_GRAY_BORDER = 'rgba(150,150,160,0.5)';
-
-// Construire les datasets Chart.js
-function buildDatasets(annee) {
-  return TRANCHES.map(t => {
-    const isCible = CIBLES.includes(t);
-    return {
-      label: t,
-      data: TRANCHES.map(tt => tt === t ? DATA[annee][tt].taux : null),
-      backgroundColor: isCible ? COLOR_CIBLE_BG : COLOR_GRAY,
-      borderColor: isCible ? COLOR_CIBLE_BORDER : COLOR_GRAY_BORDER,
-      borderWidth: isCible ? 0 : 1,
-      borderRadius: isCible ? 3 : 2,
-      borderSkipped: false,
-    };
-  });
-}
-
-// Init chart
-const ctx = document.getElementById('chart').getContext('2d');
-
-// Plugin maison pour valeurs sous le sommet des barres
-const datalabelPlugin = {
-  id: 'datalabels',
+// End-label plugin — libellé pour toutes les courbes, pas de valeur
+const endLabelPlugin = {
+  id: 'endLabels',
   afterDatasetsDraw(chart) {
     const { ctx } = chart;
+    const points = [];
     chart.data.datasets.forEach((ds, di) => {
+      const s = SERIES.find(x => x.label === ds.label);
+      if (!s) return;
       const meta = chart.getDatasetMeta(di);
-      if (meta.hidden) return;
-      meta.data.forEach((bar) => {
-        const val = ds.data[bar.index ?? meta.data.indexOf(bar)];
-        if (val === null || val === undefined) return;
-        const tranche = ds.label;
-        const isCible = CIBLES.includes(tranche);
-        ctx.save();
-        ctx.font = isCible ? 'bold 11px Marianne, arial' : '10px Marianne, arial';
-        ctx.fillStyle = isCible ? '#114b8a' : '#aaaaaa';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'bottom';
-        // bar.y = sommet de la barre en px canvas
-        ctx.fillText(val.toFixed(1), bar.x, bar.y - 3);
-        ctx.restore();
+      const lastPt = meta.data[meta.data.length - 1];
+      if (!lastPt) return;
+      points.push({
+        label: ds.label,
+        color: s.color ?? s.paleColor,
+        bold: !!s.color,
+        x: lastPt.x,
+        y: lastPt.y,
       });
+    });
+
+    points.sort((a, b) => a.y - b.y);
+
+    const MIN_GAP = 16;
+    for (let i = 1; i < points.length; i++) {
+      if (points[i].y - points[i - 1].y < MIN_GAP) {
+        points[i].y = points[i - 1].y + MIN_GAP;
+      }
+    }
+
+    points.forEach(p => {
+      ctx.save();
+      ctx.font = p.bold ? 'bold 13px Marianne, arial, sans-serif' : '12px Marianne, arial, sans-serif';
+      ctx.fillStyle = p.color;
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(p.label, p.x + 10, p.y);
+      ctx.restore();
     });
   }
 };
 
-const chart = new Chart(ctx, {
-  type: 'bar',
-  plugins: [datalabelPlugin],
-  data: {
-    labels: TRANCHES,
-    datasets: buildDatasets('2019')
-  },
+const ctx = document.getElementById('chart').getContext('2d');
+new Chart(ctx, {
+  type: 'line',
+  plugins: [endLabelPlugin],
+  data: { labels: ANNEES, datasets },
   options: {
     responsive: true,
     maintainAspectRatio: false,
-    animation: {
-      duration: 600,
-      easing: 'easeInOutCubic'
-    },
-    layout: { padding: { top: 24, bottom: 4 } },
+    layout: { padding: { right: 145, top: 8, bottom: 4 } },
     plugins: {
       legend: { display: false },
       tooltip: {
@@ -400,26 +312,22 @@ const chart = new Chart(ctx, {
         titleFont: { family: 'Marianne, arial', size: 13, weight: '700' },
         bodyFont: { family: 'Marianne, arial', size: 12 },
         titleColor: '#161616',
-        bodyColor: '#666666',
+        bodyColor: '#444',
         padding: 12,
         cornerRadius: 4,
+        mode: 'index',
+        intersect: false,
+        filter(item) {
+          return !!SERIES.find(s => s.label === item.dataset.label)?.color;
+        },
         callbacks: {
-          title(items) { return items[0].label; },
+          title(items) { return `Année ${items[0].label}`; },
           label(item) {
-            const annee = currentYear;
-            const tranche = item.label;
-            const d = DATA[annee][tranche];
-            const isCible = CIBLES.includes(tranche);
-            const lines = [
-              `  Taux : ${d.taux} / 100 000 hab.`,
-              `  Séjours : ${d.sejours.toLocaleString('fr-FR')}`,
-            ];
-            if (isCible) {
-              const ref = DATA['2019'][tranche].taux;
-              const evol = Math.round((d.taux - ref) / ref * 100);
-              lines.push(`  Évolution vs 2019 : ${evol > 0 ? '+' : ''}${evol} %`);
-            }
-            return lines;
+            const val = item.raw;
+            const ref = SERIES.find(s => s.label === item.dataset.label).data[0];
+            const evol = Math.round((val - ref) / ref * 100);
+            const sign = evol >= 0 ? '+' : '';
+            return `  ${item.dataset.label} : ${val} / 100 000  (${sign}${evol} % vs 2019)`;
           }
         }
       }
@@ -428,121 +336,25 @@ const chart = new Chart(ctx, {
       x: {
         grid: { display: false },
         border: { display: false },
-        ticks: {
-          color: '#666666',
-          font: { family: 'Marianne, arial', size: 11 }
-        }
+        ticks: { color: '#666', font: { family: 'Marianne, arial', size: 11 } }
       },
       y: {
-        grid: { color: 'rgba(0,0,0,0.06)' },
+        grid: { color: 'rgba(0,0,0,0.05)' },
         border: { display: false },
-        ticks: {
-          color: '#666666',
-          font: { family: 'Marianne, arial', size: 11 },
-          callback: v => v + ''
-        },
+        min: 0,
+        max: 560,
+        ticks: { color: '#666', font: { family: 'Marianne, arial', size: 11 } },
         title: {
           display: true,
           text: 'Taux pour 100 000 habitants',
-          color: '#999999',
+          color: '#999',
           font: { family: 'Marianne, arial', size: 11 }
-        },
-        max: 560
+        }
       }
-    },
-    barPercentage: 0.75,
-    categoryPercentage: 0.85,
-  }
-});
-
-// State
-let currentYear = '2019';
-let playInterval = null;
-let isPlaying = false;
-
-// Update UI
-function updateYear(annee) {
-  currentYear = annee;
-
-  // Mettre à jour le graphique
-  chart.data.datasets = buildDatasets(annee);
-  chart.update();
-
-  // Année affichée
-  document.getElementById('yearBig').textContent = annee;
-
-  // Stats
-  const total = TOTAUX[annee];
-  document.getElementById('totalSejours').textContent = total.toLocaleString('fr-FR');
-
-  // Pills actives
-  document.querySelectorAll('.year-pill').forEach(p => {
-    p.classList.toggle('active', p.dataset.year === annee);
-  });
-}
-
-// Construire les pills
-const track = document.getElementById('yearsTrack');
-ANNEES.forEach(a => {
-  const pill = document.createElement('button');
-  pill.className = 'year-pill' + (a === '2019' ? ' active' : '');
-  pill.dataset.year = a;
-  pill.textContent = a;
-  pill.addEventListener('click', () => {
-    stopPlay();
-    updateYear(a);
-  });
-  track.appendChild(pill);
-});
-
-// Légende
-const legendEl = document.getElementById('legend');
-const legendItems = [
-  { color: COLOR_CIBLE_BG, label: '11–14 ans · 15–17 ans · 18–24 ans (tranches cibles)' },
-  { color: COLOR_GRAY, label: 'Autres tranches d\'âge', border: COLOR_GRAY_BORDER },
-];
-legendItems.forEach(item => {
-  const div = document.createElement('div');
-  div.className = 'legend-item';
-  div.innerHTML = `<div class="legend-dot" style="background:${item.color};${item.border ? 'border:1px solid '+item.border : ''}"></div><span>${item.label}</span>`;
-  legendEl.appendChild(div);
-});
-
-// Play / Pause
-const btnPlay = document.getElementById('btnPlay');
-
-function stopPlay() {
-  isPlaying = false;
-  clearInterval(playInterval);
-  btnPlay.innerHTML = `<svg viewBox="0 0 16 16"><path d="M4 2l10 6-10 6z"/></svg>`;
-  btnPlay.title = 'Lecture automatique';
-}
-
-function startPlay() {
-  isPlaying = true;
-  btnPlay.innerHTML = `<svg viewBox="0 0 16 16"><rect x="3" y="2" width="4" height="12"/><rect x="9" y="2" width="4" height="12"/></svg>`;
-  btnPlay.title = 'Pause';
-  let idx = ANNEES.indexOf(currentYear);
-  playInterval = setInterval(() => {
-    idx = (idx + 1) % ANNEES.length;
-    updateYear(ANNEES[idx]);
-    if (idx === ANNEES.length - 1) {
-      stopPlay();
     }
-  }, 1400);
-}
-
-btnPlay.addEventListener('click', () => {
-  if (isPlaying) {
-    stopPlay();
-  } else {
-    if (currentYear === ANNEES[ANNEES.length - 1]) updateYear(ANNEES[0]);
-    startPlay();
   }
 });
 
-// Init
-updateYear('2019');
 </script>
 </body>
 </html>
