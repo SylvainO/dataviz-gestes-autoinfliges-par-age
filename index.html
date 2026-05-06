@@ -189,19 +189,19 @@
       <div class="kpi-age">11–14 ans</div>
       <div class="kpi-pct">+90 %</div>
       <div class="kpi-detail">147 → 279 pour 100 000 hab.</div>
-      <div class="kpi-period">2024 vs. 2019</div>
+      <div class="kpi-period">(2019 → 2024)</div>
     </div>
     <div class="kpi-card c2">
       <div class="kpi-age">15–17 ans</div>
       <div class="kpi-pct">+66 %</div>
       <div class="kpi-detail">305 → 507 pour 100 000 hab.</div>
-      <div class="kpi-period">2024 vs. 2019</div>
+      <div class="kpi-period">(2019 → 2024)</div>
     </div>
     <div class="kpi-card c3">
       <div class="kpi-age">18–24 ans</div>
       <div class="kpi-pct">+41 %</div>
       <div class="kpi-detail">207 → 292 pour 100 000 hab.</div>
-      <div class="kpi-period">2024 vs. 2019</div>
+      <div class="kpi-period">(2019 → 2024)</div>
     </div>
   </div>
 
@@ -317,6 +317,10 @@ new Chart(ctx, {
         cornerRadius: 4,
         mode: 'index',
         intersect: false,
+        itemSort(a, b) {
+          const order = ['15-17 ans', '18-24 ans', '11-14 ans'];
+          return order.indexOf(a.dataset.label) - order.indexOf(b.dataset.label);
+        },
         filter(item) {
           return !!SERIES.find(s => s.label === item.dataset.label)?.color;
         },
